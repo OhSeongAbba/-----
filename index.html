@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미래 직업 탐험대</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Jua', 'Noto Sans KR', sans-serif;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #4a4a4a;
+            border-radius: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .input-box, .select-box, .textarea-box {
+            border: 3px solid #667eea;
+            border-radius: 9999px;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+            color: #4a4a4a;
+        }
+        .input-box:focus, .select-box:focus, .textarea-box:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.3);
+            outline: none;
+        }
+        .button-start, .button-submit, .button-ai-interview {
+            background: linear-gradient(45deg, #FF6B6B, #FFC94A);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        .button-submit {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        .button-ai-interview {
+            background: linear-gradient(45deg, #667eea, #3B82F6);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .button-start:hover, .button-submit:hover, .button-ai-interview:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
+        }
+        .button-start:active, .button-submit:active, .button-ai-interview:active {
+            transform: translateY(1px);
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-30px); }
+            60% { transform: translateY(-15px); }
+        }
+        .bouncing-text {
+            animation: bounce 2s infinite;
+        }
+        .stage-title {
+            color: #764ba2;
+        }
+        .loading-dots span {
+            animation: blink 1.4s infinite;
+            animation-fill-mode: both;
+        }
+        .loading-dots span:nth-child(2) {
+            animation-delay: .2s;
+        }
+        .loading-dots span:nth-child(3) {
+            animation-delay: .4s;
+        }
+        @keyframes blink {
+            0% { opacity: 0.2; }
+            20% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+        .mic-wave {
+            display: inline-block;
+            width: 2px;
+            height: 10px;
+            background-color: #667eea;
+            margin: 0 1px;
+            animation: wave 1s infinite ease-in-out;
+            border-radius: 1px;
+        }
+        .mic-wave:nth-child(2) { animation-delay: 0.1s; }
+        .mic-wave:nth-child(3) { animation-delay: 0.2s; }
+        .mic-wave:nth-child(4) { animation-delay: 0.3s; }
+        .mic-wave:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes wave {
+            0%, 100% { height: 10px; }
+            50% { height: 20px; }
+        }
+        .ranking-item {
+            background-color: #f3f4f6;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .ranking-item.self {
+            background-color: #d1e7dd;
+            border: 2px solid #4CAF50;
+        }
+        .rank-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #764ba2;
+            width: 3rem;
+            text-align: center;
+        }
+        .rank-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body class="font-jua text-white">
+    <!-- Screen Container -->
+    <div id="screen-container">
+        <!-- 0단계: 마이크 테스트 & 권한 요청 -->
+        <div id="mic-check-screen" class="card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
+                0단계 | 마이크 점검
+            </h2>
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6">
+                AI 면접을 시작하기 전에 마이크가 잘 작동하는지 확인해 볼까요? <br>
+                아래 버튼을 누르면 마이크 사용 권한 요청이 나타날 거예요.
+            </p>
+            <div id="mic-status-display" class="bg-gray-200 p-6 rounded-xl mb-8 shadow-inner text-lg md:text-xl">
+                <p id="mic-status-text" class="text-gray-600">
+                    마이크 상태: 대기 중...
+                </p>
+                <div id="mic-test-visual" class="flex justify-center items-end h-10 mt-4"></div>
+            </div>
+            <button id="micCheckButton" class="button-submit w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
+                🎤 마이크 테스트하기!
+            </button>
+        </div>
+
+        <!-- 시작 화면 (초기 숨김) -->
+        <div id="start-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto transform transition-all hover:scale-105 duration-500">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 drop-shadow-lg bouncing-text">
+                미래 직업 탐험대
+            </h1>
+            <h2 class="text-xl sm:text-2xl md:text-3xl font-semibold mb-6 text-gray-700">
+                AI 면접 & 직업 배틀!
+            </h2>
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-8">
+                친구들, 미래의 전문가가 될 준비됐나요? <br>
+                AI 면접관과 함께 멋진 직업도 찾고, 다른 팀과 신나는 미션을 해결하러 떠나봐요!
+                지금 바로 여러분의 코드를 입력하고 모험을 시작해요!
+            </p>
+            <div class="mb-8">
+                <input type="text" id="teamCodeInput" placeholder="우리 팀 코드를 입력해 줘!" class="input-box w-full max-w-xs text-lg md:text-xl text-center font-sans tracking-wide">
+            </div>
+            <button id="startButton" class="button-start text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
+                🚀 모험 시작하기!
+            </button>
+        </div>
+
+        <!-- 1단계: 이력서 작성 화면 (초기 숨김) -->
+        <div id="job-selection-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
+                1단계 | 직업 선택 및 이력서 작성
+            </h2>
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6">
+                당신의 꿈은 무엇인가요? 아래 목록에서 당신이 되고 싶은 미래 직업을 하나 선택하고, 멋진 이력서를 만들어 보세요!
+            </p>
+            <div class="mb-6">
+                <label for="job-select" class="block text-lg sm:text-xl font-bold mb-2 text-gray-700">탐험하고 싶은 직업을 골라볼까?</label>
+                <select id="job-select" class="select-box w-full text-lg sm:text-xl text-center">
+                    <option value="">-- 직업을 선택해 주세요 --</option>
+                    <option value="개발자">개발자 (코드 마법사)</option>
+                    <option value="디자이너">디자이너 (창의력 대장)</option>
+                    <option value="마케터">마케터 (아이디어 천재)</option>
+                    <option value="과학자">과학자 (호기심 박사)</option>
+                    <option value="요리사">요리사 (맛의 예술가)</option>
+                    <option value="의사">의사 (치료의 히어로)</option>
+                </select>
+            </div>
+            <form id="resume-form" class="text-left">
+                <div class="mb-4">
+                    <label for="name" class="block text-lg font-bold mb-2 text-gray-700">이름이 뭐예요? ✨</label>
+                    <input type="text" id="name" class="input-box w-full" placeholder="내 이름을 멋지게 써 주세요!">
+                </div>
+                <div class="mb-4">
+                    <label for="selected-job" class="block text-lg font-bold mb-2 text-gray-700">선택한 직업</label>
+                    <input type="text" id="selected-job" class="input-box w-full bg-gray-200" readonly>
+                </div>
+                <div class="mb-4">
+                    <label for="strengths" class="block text-lg font-bold mb-2 text-gray-700">내가 가진 특별한 능력은? 💪</label>
+                    <textarea id="strengths" class="textarea-box w-full h-24" placeholder="이 직업에 꼭 필요한 나만의 강점을 마음껏 자랑해 주세요!"></textarea>
+                </div>
+                <div class="mb-6">
+                    <label for="motivation" class="block text-lg font-bold mb-2 text-gray-700">이 직업을 선택한 이유는? 🤔</label>
+                    <textarea id="motivation" class="textarea-box w-full h-24" placeholder="왜 이 직업이 멋져 보이는지 솔직하게 이야기해 주세요!"></textarea>
+                </div>
+                <button id="submitResumeButton" type="submit" class="button-submit w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
+                    💌 이력서 제출하고 다음 단계로!
+                </button>
+            </form>
+        </div>
+
+        <!-- 2단계: AI 면접 화면 (초기 숨김) -->
+        <div id="ai-interview-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
+                2단계 | AI 면접관과 대화하기
+            </h2>
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6" id="interview-intro">
+                AI 면접관을 만나 볼 시간이에요! 아래 '면접 시작하기' 버튼을 눌러주세요.
+            </p>
+            <div class="bg-gray-200 p-6 rounded-xl mb-6 shadow-inner text-left text-lg md:text-xl">
+                <h3 class="font-bold text-gray-700 mb-2">AI 면접관의 질문</h3>
+                <div id="ai-question" class="text-gray-800">
+                    면접관을 불러오는 중...
+                </div>
+            </div>
+            <div class="bg-blue-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl">
+                <h3 class="font-bold text-blue-700 mb-2">나의 답변</h3>
+                <div id="my-answer" class="text-blue-800">
+                    <span class="text-gray-500">준비되면 버튼을 눌러주세요.</span>
+                </div>
+            </div>
+            <div id="feedback-area" class="bg-green-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl hidden">
+                <h3 class="font-bold text-green-700 mb-2">AI 면접관의 피드백 📝</h3>
+                <div id="feedback-text" class="text-green-800"></div>
+            </div>
+            <button id="interviewStartButton" class="button-ai-interview text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
+                🎙️ 면접 시작하기
+            </button>
+            <button id="micButton" class="button-ai-interview text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95 hidden">
+                🎙️ 답변하기
+            </button>
+            <div id="mic-status" class="mt-4 text-sm font-semibold text-red-500 hidden">
+                마이크가 켜졌습니다. 질문을 듣고 답변해 주세요.
+            </div>
+        </div>
+
+        <!-- 3단계: 랭킹 화면 (초기 숨김) -->
+        <div id="ranking-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
+                3단계 | 전문가 랭킹 발표!
+            </h2>
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6">
+                같은 직업을 선택한 친구들의 랭킹이에요! <br>
+                면접 점수가 가장 높은 친구는 누구일까요?
+            </p>
+            <div id="ranking-list" class="space-y-4 text-left">
+                <!-- 랭킹 아이템이 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db = null;
+        let auth = null;
+        let userId = null;
+
+        let recognition = null;
+        let audioContext = null;
+        let analyser = null;
+        let mediaStream = null;
+        let currentQuestionIndex = 0;
+
+        const interviewQuestions = [
+            "안녕하세요, 미래의 전문가님. 간단한 자기소개를 해볼까요?",
+            "이 직업을 선택한 이유는 무엇인가요?",
+            "이 직업을 위해 어떤 준비를 할 수 있을까요?",
+            "가장 좋아하는 취미는 무엇인가요?",
+            "친구들과 함께 문제를 해결한 경험이 있나요?"
+        ];
+        
+        let userName = '';
+        let userJob = '';
+        let finalScore = 0;
+        
+        document.addEventListener("DOMContentLoaded", async () => {
+            const startScreen = document.getElementById('start-screen');
+            const micCheckScreen = document.getElementById('mic-check-screen');
+            const jobSelectionScreen = document.getElementById('job-selection-screen');
+            const aiInterviewScreen = document.getElementById('ai-interview-screen');
+            const rankingScreen = document.getElementById('ranking-screen');
+
+            const startButton = document.getElementById('startButton');
+            const micCheckButton = document.getElementById('micCheckButton');
+            const submitResumeButton = document.getElementById('submitResumeButton');
+            const interviewStartButton = document.getElementById('interviewStartButton');
+            const micButton = document.getElementById('micButton');
+            const teamCodeInput = document.getElementById('teamCodeInput');
+            
+            const jobSelect = document.getElementById('job-select');
+            const selectedJobInput = document.getElementById('selected-job');
+            const nameInput = document.getElementById('name');
+            const strengthsInput = document.getElementById('strengths');
+            const motivationInput = document.getElementById('motivation');
+
+            const micStatusText = document.getElementById('mic-status-text');
+            const micTestVisual = document.getElementById('mic-test-visual');
+            const aiQuestionDiv = document.getElementById('ai-question');
+            const myAnswerDiv = document.getElementById('my-answer');
+            const feedbackArea = document.getElementById('feedback-area');
+            const feedbackText = document.getElementById('feedback-text');
+            const micStatus = document.getElementById('mic-status');
+            const rankingList = document.getElementById('ranking-list');
+
+            // --- Firebase Initialization and Auth ---
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                userId = auth.currentUser?.uid || crypto.randomUUID();
+            } catch (error) {
+                console.error("Firebase Auth Error:", error);
+            }
+
+            // --- Screen Transition Function ---
+            function showScreen(screenId) {
+                document.querySelectorAll('#screen-container > div').forEach(screen => {
+                    screen.classList.add('hidden');
+                });
+                document.getElementById(screenId).classList.remove('hidden');
+            }
+
+            // --- Mic Check Logic (Initial Screen) ---
+            micCheckButton.addEventListener('click', () => {
+                micCheckButton.disabled = true;
+                micStatusText.textContent = "마이크 권한을 요청 중입니다...";
+                micTestVisual.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
+
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ audio: true })
+                        .then(stream => {
+                            micStatusText.textContent = "마이크가 연결되었습니다! 이제 다음 단계로 갈 수 있어요.";
+                            micTestVisual.innerHTML = `<div class="mic-wave"></div><div class="mic-wave"></div><div class="mic-wave"></div><div class="mic-wave"></div><div class="mic-wave"></div>`;
+                            micCheckButton.textContent = '✔️ 다음 단계로!';
+                            micCheckButton.disabled = false;
+                            
+                            mediaStream = stream;
+                            audioContext = new AudioContext();
+                            analyser = audioContext.createAnalyser();
+                            const source = audioContext.createMediaStreamSource(stream);
+                            source.connect(analyser);
+                            analyser.fftSize = 256;
+                            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                            function updateVisual() {
+                                if (!micCheckScreen.classList.contains('hidden')) {
+                                    analyser.getByteFrequencyData(dataArray);
+                                    const waves = micTestVisual.querySelectorAll('.mic-wave');
+                                    let sum = 0;
+                                    for(let i=0; i<dataArray.length; i++) { sum += dataArray[i]; }
+                                    const average = sum / dataArray.length;
+                                    const scale = Math.min(1.5, Math.max(0.5, average / 100));
+                                    waves.forEach(wave => {
+                                        wave.style.transform = `scaleY(${scale})`;
+                                    });
+                                }
+                                requestAnimationFrame(updateVisual);
+                            }
+                            updateVisual();
+
+                            micCheckButton.removeEventListener('click', () => {});
+                            micCheckButton.addEventListener('click', () => {
+                                stream.getTracks().forEach(track => track.stop());
+                                showScreen('start-screen');
+                            });
+                        })
+                        .catch(err => {
+                            micStatusText.textContent = "마이크 연결에 실패했습니다. 권한을 허용했는지 확인해 주세요. 😭";
+                            micTestVisual.innerHTML = '';
+                            micCheckButton.textContent = '다시 시도하기';
+                            micCheckButton.disabled = false;
+                        });
+                } else {
+                    micStatusText.textContent = "이 브라우저에서는 마이크 기능을 지원하지 않습니다. 최신 크롬 브라우저를 사용해 주세요.";
+                    micTestVisual.innerHTML = '';
+                    micCheckButton.disabled = true;
+                }
+            });
+
+            // --- Start Button Click Event ---
+            startButton.addEventListener('click', () => {
+                showScreen('job-selection-screen');
+            });
+
+            // --- Job Selection Dropdown Change Event ---
+            jobSelect.addEventListener('change', (event) => {
+                selectedJobInput.value = event.target.value;
+            });
+
+            // --- Resume Submit & Save Data ---
+            submitResumeButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                userName = nameInput.value;
+                userJob = jobSelect.value;
+                if (!userName || !userJob) {
+                    alert('이름과 직업을 모두 입력해주세요!');
+                    return;
+                }
+                showScreen('ai-interview-screen');
+            });
+
+            // --- Interview Start Button Click Event ---
+            interviewStartButton.addEventListener('click', () => {
+                interviewStartButton.classList.add('hidden');
+                micButton.classList.remove('hidden');
+                startInterviewFlow();
+            });
+
+            // --- AI Interview Logic & Data Save ---
+            function base64ToArrayBuffer(base64) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes.buffer;
+            }
+
+            function pcmToWav(pcmData, sampleRate) {
+                const header = new ArrayBuffer(44);
+                const view = new DataView(header);
+                let offset = 0;
+                view.setUint32(offset, 0x46464952, true); offset += 4; // "RIFF"
+                view.setUint32(offset, 36 + pcmData.byteLength, true); offset += 4; // file size
+                view.setUint32(offset, 0x45564157, true); offset += 4; // "WAVE"
+                view.setUint32(offset, 0x20746d66, true); offset += 4; // "fmt "
+                view.setUint32(offset, 16, true); offset += 4; // chunk size
+                view.setUint16(offset, 1, true); offset += 2; // format (PCM)
+                view.setUint16(offset, 1, true); offset += 2; // channels
+                view.setUint32(offset, sampleRate, true); offset += 4; // sample rate
+                view.setUint32(offset, sampleRate * 2, true); offset += 4; // byte rate
+                view.setUint16(offset, 2, true); offset += 2; // block align
+                view.setUint16(offset, 16, true); offset += 2; // bits per sample
+                view.setUint32(offset, 0x61746164, true); offset += 4; // "data"
+                view.setUint32(offset, pcmData.byteLength, true); offset += 4; // data size
+                const output = new Uint8Array(header.byteLength + pcmData.byteLength);
+                output.set(new Uint8Array(header), 0);
+                output.set(new Uint8Array(pcmData), header.byteLength);
+                return new Blob([output], { type: 'audio/wav' });
+            }
+
+            async function getAiVoice(text) {
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{ parts: [{ text: text }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                        const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                        const pcmData = base64ToArrayBuffer(audioData);
+                        const wavBlob = pcmToWav(pcmData, sampleRate);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+                        const audio = new Audio(audioUrl);
+                        audio.play();
+                    }
+                } catch (error) {
+                    console.error("AI 음성 생성 중 오류 발생:", error);
+                }
+            }
+
+            async function getAiFeedback(question, answer) {
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const systemPrompt = `
+                    You are a friendly AI interview coach for a 6th-grade student. Your role is to give helpful and positive feedback and a score on their interview answers.
+                    - The score must be an integer from 1 to 100 based on the quality of the answer. Higher scores for more detailed, confident, and relevant answers.
+                    - The response must be a JSON object with 'feedback' and 'score' properties.
+                    - 'feedback' should be a friendly, short sentence of praise, a single-sentence suggestion for improvement, and an encouraging closing.
+                    - The tone must be simple and supportive for a 6th grader.
+                    - Example JSON: { "feedback": "정말 멋진 대답이에요! 답변에 더 많은 예를 들어보면 더 좋을 것 같아요. 다음 질문도 화이팅!", "score": 85 }
+                `;
+
+                const userQuery = `
+                    **Interview Question:** "${question}"
+                    **Student Answer:** "${answer}"
+                    Give me feedback and a score for this answer in a JSON object format.
+                `;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: { responseMimeType: "application/json" }
+                };
+
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) {
+                        return JSON.parse(text);
+                    }
+                } catch (error) {
+                    console.error("AI feedback generation error:", error);
+                }
+                return { feedback: "피드백을 생성할 수 없어요. 다시 시도해 주세요.", score: 0 };
+            }
+
+            async function startInterviewFlow() {
+                if (currentQuestionIndex >= interviewQuestions.length) {
+                    finalScore = Math.floor(finalScore / interviewQuestions.length);
+                    await saveUserData(userName, userJob, finalScore, motivationInput.value, strengthsInput.value);
+                    await showRanking();
+                    return;
+                }
+
+                aiQuestionDiv.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
+                myAnswerDiv.innerHTML = '<span class="text-gray-500">질문을 준비 중입니다...</span>';
+                feedbackArea.classList.add('hidden');
+                feedbackText.textContent = '';
+                
+                const question = interviewQuestions[currentQuestionIndex];
+                aiQuestionDiv.textContent = question;
+                await getAiVoice(question);
+                
+                micButton.textContent = '🎙️ 답변 시작하기';
+                micButton.disabled = false;
+            }
+
+            function startRecognition() {
+                micButton.disabled = true;
+                micStatus.classList.remove('hidden');
+                myAnswerDiv.innerHTML = '<span class="text-purple-600 font-bold">말하는 중...</span>';
+                
+                if (recognition) {
+                    recognition.start();
+                } else {
+                     if ('webkitSpeechRecognition' in window) {
+                        recognition = new webkitSpeechRecognition();
+                        recognition.continuous = false;
+                        recognition.lang = 'ko-KR';
+                        recognition.onresult = async (event) => {
+                            const transcript = event.results[0][0].transcript;
+                            myAnswerDiv.textContent = transcript;
+                            micStatus.classList.add('hidden');
+                            const question = aiQuestionDiv.textContent;
+                            const { feedback, score } = await getAiFeedback(question, transcript);
+                            finalScore += score;
+                            feedbackArea.classList.remove('hidden');
+                            feedbackText.textContent = feedback;
+                            micButton.textContent = '다음 질문 받기';
+                            micButton.disabled = false;
+                        };
+                        recognition.onend = () => {
+                             micStatus.classList.add('hidden');
+                             micButton.disabled = false;
+                             micButton.textContent = '🎙️ 다시 답변하기';
+                        };
+                        recognition.start();
+                    } else {
+                        alert("음성 인식 기능을 사용할 수 없습니다. 최신 크롬 브라우저를 사용해 주세요.");
+                        micButton.disabled = true;
+                        micButton.textContent = "지원되지 않음";
+                    }
+                }
+            }
+
+            micButton.addEventListener('click', () => {
+                if (micButton.textContent === '다음 질문 받기') {
+                    currentQuestionIndex++;
+                    startInterviewFlow();
+                } else {
+                    startRecognition();
+                }
+            });
+
+            // --- Firestore Functions ---
+            async function saveUserData(name, job, score, motivation, strengths) {
+                if (!db || !userId) {
+                    console.error("Firestore is not initialized.");
+                    return;
+                }
+                const teamCode = teamCodeInput.value.trim() || 'default-team';
+                const collectionPath = `/artifacts/${appId}/public/data/team_results`;
+                try {
+                    await addDoc(collection(db, collectionPath), {
+                        userId: userId,
+                        name: name,
+                        job: job,
+                        score: score,
+                        motivation: motivation,
+                        strengths: strengths,
+                        team: teamCode,
+                        timestamp: new Date()
+                    });
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                }
+            }
+
+            async function showRanking() {
+                showScreen('ranking-screen');
+                rankingList.innerHTML = '<div class="text-center text-gray-600"><div class="loading-dots"><span>.</span><span>.</span><span>.</span></div> 랭킹을 불러오는 중...</div>';
+                const teamCode = teamCodeInput.value.trim() || 'default-team';
+                const collectionPath = `/artifacts/${appId}/public/data/team_results`;
+                
+                try {
+                    const q = query(collection(db, collectionPath), where("team", "==", teamCode));
+                    const querySnapshot = await getDocs(q);
+                    let rankingData = [];
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        rankingData.push(data);
+                    });
+                    
+                    rankingData.sort((a, b) => b.score - a.score);
+
+                    rankingList.innerHTML = '';
+                    if (rankingData.length === 0) {
+                        rankingList.innerHTML = '<div class="text-center text-gray-600">아직 랭킹 데이터가 없어요. 첫 번째로 도전해 보세요!</div>';
+                        return;
+                    }
+
+                    rankingData.forEach((item, index) => {
+                        const isSelf = item.userId === userId;
+                        const rankItem = document.createElement('div');
+                        rankItem.className = `ranking-item ${isSelf ? 'self' : ''}`;
+                        rankItem.innerHTML = `
+                            <span class="rank-number">${index + 1}</span>
+                            <div class="ml-4">
+                                <div class="text-lg font-bold text-gray-800">${item.name}</div>
+                                <div class="text-sm text-gray-500">${item.job}</div>
+                            </div>
+                            <span class="rank-score">${item.score}점</span>
+                        `;
+                        rankingList.appendChild(rankItem);
+                    });
+                } catch (e) {
+                    console.error("Error fetching documents: ", e);
+                    rankingList.innerHTML = '<div class="text-center text-red-500">랭킹을 불러오는 데 실패했어요. 다시 시도해 주세요.</div>';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
