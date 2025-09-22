@@ -285,6 +285,7 @@
         let analyser = null;
         let mediaStream = null;
         let currentQuestionIndex = 0;
+        let micPermissionGranted = false;
 
         const interviewQuestions = [
             "안녕하세요, 미래의 전문가님. 간단한 자기소개를 해볼까요?",
@@ -360,6 +361,7 @@
                 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     navigator.mediaDevices.getUserMedia({ audio: true })
                         .then(stream => {
+                            micPermissionGranted = true;
                             micStatusText.textContent = "마이크가 연결되었습니다! 이제 다음 단계로 갈 수 있어요.";
                             micTestVisual.innerHTML = `<div class="mic-wave"></div><div class="mic-wave"></div><div class="mic-wave"></div><div class="mic-wave"></div><div class="mic-wave"></div>`;
                             micCheckButton.textContent = '✔️ 다음 단계로!';
@@ -400,6 +402,7 @@
                             micTestVisual.innerHTML = '';
                             micCheckButton.textContent = '다시 시도하기';
                             micCheckButton.disabled = false;
+                            console.error("마이크 접근 거부:", err);
                         });
                 } else {
                     micStatusText.textContent = "이 브라우저에서는 마이크 기능을 지원하지 않습니다. 최신 크롬 브라우저를 사용해 주세요.";
@@ -424,7 +427,19 @@
                 userName = nameInput.value;
                 userJob = jobSelect.value;
                 if (!userName || !userJob) {
-                    alert('이름과 직업을 모두 입력해주세요!');
+                    // Custom message box instead of alert()
+                    const messageBox = document.createElement('div');
+                    messageBox.className = "fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50";
+                    messageBox.innerHTML = `
+                        <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+                            <p class="text-gray-800 text-lg font-bold mb-4">이름과 직업을 모두 입력해주세요!</p>
+                            <button class="bg-purple-600 text-white px-6 py-2 rounded-full font-bold">확인</button>
+                        </div>
+                    `;
+                    document.body.appendChild(messageBox);
+                    messageBox.querySelector('button').addEventListener('click', () => {
+                        messageBox.remove();
+                    });
                     return;
                 }
                 showScreen('ai-interview-screen');
@@ -593,7 +608,18 @@
                         };
                         recognition.start();
                     } else {
-                        alert("음성 인식 기능을 사용할 수 없습니다. 최신 크롬 브라우저를 사용해 주세요.");
+                        const messageBox = document.createElement('div');
+                        messageBox.className = "fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50";
+                        messageBox.innerHTML = `
+                            <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+                                <p class="text-gray-800 text-lg font-bold mb-4">음성 인식 기능을 사용할 수 없습니다. 최신 크롬 브라우저를 사용해 주세요.</p>
+                                <button class="bg-purple-600 text-white px-6 py-2 rounded-full font-bold">확인</button>
+                            </div>
+                        `;
+                        document.body.appendChild(messageBox);
+                        messageBox.querySelector('button').addEventListener('click', () => {
+                            messageBox.remove();
+                        });
                         micButton.disabled = true;
                         micButton.textContent = "지원되지 않음";
                     }
