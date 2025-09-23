@@ -537,25 +537,33 @@
                     model: "gemini-2.5-flash-preview-tts"
                 };
 
-                try {
-                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const result = await response.json();
-                    const part = result?.candidates?.[0]?.content?.parts?.[0];
-                    const audioData = part?.inlineData?.data;
-                    const mimeType = part?.inlineData?.mimeType;
+                return new Promise((resolve, reject) => {
+                    fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+                        .then(response => {
+                            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                            return response.json();
+                        })
+                        .then(result => {
+                            const part = result?.candidates?.[0]?.content?.parts?.[0];
+                            const audioData = part?.inlineData?.data;
+                            const mimeType = part?.inlineData?.mimeType;
 
-                    if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                        const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
-                        const pcmData = base64ToArrayBuffer(audioData);
-                        const wavBlob = pcmToWav(pcmData, sampleRate);
-                        const audioUrl = URL.createObjectURL(wavBlob);
-                        const audio = new Audio(audioUrl);
-                        audio.play();
-                    }
-                } catch (error) {
-                    console.error("AI 음성 생성 중 오류 발생:", error);
-                }
+                            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                                const pcmData = base64ToArrayBuffer(audioData);
+                                const wavBlob = pcmToWav(pcmData, sampleRate);
+                                const audio = new Audio(URL.createObjectURL(wavBlob));
+                                audio.onended = resolve; // Resolve the promise when audio playback ends
+                                audio.play();
+                            } else {
+                                reject(new Error("No audio data received or invalid format."));
+                            }
+                        })
+                        .catch(error => {
+                            console.error("AI 음성 생성 중 오류 발생:", error);
+                            reject(error);
+                        });
+                });
             }
 
             async function getAiFeedback(question, answer) {
@@ -607,13 +615,16 @@
                 myAnswerDiv.innerHTML = '<span class="text-gray-500">질문을 준비 중입니다...</span>';
                 feedbackArea.classList.add('hidden');
                 feedbackText.textContent = '';
-                
+                micButton.disabled = true; // Disable mic button during AI audio generation
+
                 const question = interviewQuestions[currentQuestionIndex];
                 aiQuestionDiv.textContent = question;
-                await getAiVoice(question);
-                
-                micButton.textContent = '🎙️ 답변 시작하기';
-                micButton.disabled = false;
+                await getAiVoice(question).then(() => {
+                    micButton.textContent = '🎙️ 답변 시작하기';
+                    micButton.disabled = false;
+                }).catch(() => {
+                    micButton.textContent = '음성 오류';
+                });
             }
 
             function startRecognition() {
