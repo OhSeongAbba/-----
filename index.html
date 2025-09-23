@@ -492,80 +492,6 @@
             });
 
             // --- AI Interview Logic & Data Save ---
-            function base64ToArrayBuffer(base64) {
-                const binaryString = window.atob(base64);
-                const len = binaryString.length;
-                const bytes = new Uint8Array(len);
-                for (let i = 0; i < len; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                return bytes.buffer;
-            }
-
-            function pcmToWav(pcmData, sampleRate) {
-                const header = new ArrayBuffer(44);
-                const view = new DataView(header);
-                let offset = 0;
-                view.setUint32(offset, 0x46464952, true); offset += 4; // "RIFF"
-                view.setUint32(offset, 36 + pcmData.byteLength, true); offset += 4; // file size
-                view.setUint32(offset, 0x45564157, true); offset += 4; // "WAVE"
-                view.setUint32(offset, 0x20746d66, true); offset += 4; // "fmt "
-                view.setUint32(offset, 16, true); offset += 4; // chunk size
-                view.setUint16(offset, 1, true); offset += 2; // format (PCM)
-                view.setUint16(offset, 1, true); offset += 2; // channels
-                view.setUint32(offset, sampleRate, true); offset += 4; // sample rate
-                view.setUint32(offset, sampleRate * 2, true); offset += 4; // byte rate
-                view.setUint16(offset, 2, true); offset += 2; // block align
-                view.setUint16(offset, 16, true); offset += 2; // bits per sample
-                view.setUint32(offset, 0x61746164, true); offset += 4; // "data"
-                view.setUint32(offset, pcmData.byteLength, true); offset += 4; // data size
-                const output = new Uint8Array(header.byteLength + pcmData.byteLength);
-                output.set(new Uint8Array(header), 0);
-                output.set(new Uint8Array(pcmData), header.byteLength);
-                return new Blob([output], { type: 'audio/wav' });
-            }
-
-            async function getAiVoice(text) {
-                const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-                const payload = {
-                    contents: [{ parts: [{ text: text }] }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } } }
-                    },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
-
-                return new Promise((resolve, reject) => {
-                    fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-                        .then(response => {
-                            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                            return response.json();
-                        })
-                        .then(result => {
-                            const part = result?.candidates?.[0]?.content?.parts?.[0];
-                            const audioData = part?.inlineData?.data;
-                            const mimeType = part?.inlineData?.mimeType;
-
-                            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
-                                const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
-                                const pcmData = base64ToArrayBuffer(audioData);
-                                const wavBlob = pcmToWav(pcmData, sampleRate);
-                                const audio = new Audio(URL.createObjectURL(wavBlob));
-                                audio.onended = resolve; // Resolve the promise when audio playback ends
-                                audio.play();
-                            } else {
-                                reject(new Error("No audio data received or invalid format."));
-                            }
-                        })
-                        .catch(error => {
-                            console.error("AI 음성 생성 중 오류 발생:", error);
-                            reject(error);
-                        });
-                });
-            }
-
             async function getAiFeedback(question, answer) {
                 const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
@@ -615,16 +541,14 @@
                 myAnswerDiv.innerHTML = '<span class="text-gray-500">질문을 준비 중입니다...</span>';
                 feedbackArea.classList.add('hidden');
                 feedbackText.textContent = '';
-                micButton.disabled = true; // Disable mic button during AI audio generation
-
+                
                 const question = interviewQuestions[currentQuestionIndex];
                 aiQuestionDiv.textContent = question;
-                await getAiVoice(question).then(() => {
-                    micButton.textContent = '🎙️ 답변 시작하기';
-                    micButton.disabled = false;
-                }).catch(() => {
-                    micButton.textContent = '음성 오류';
-                });
+                
+                // 음성 재생 대신 질문이 바로 보이도록 변경
+                myAnswerDiv.innerHTML = '<span class="text-gray-500">준비되면 답변하기 버튼을 눌러주세요.</span>';
+                micButton.textContent = '🎙️ 답변 시작하기';
+                micButton.disabled = false;
             }
 
             function startRecognition() {
