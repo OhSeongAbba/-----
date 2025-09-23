@@ -210,21 +210,24 @@
                     <label for="motivation" class="block text-lg font-bold mb-2 text-gray-700">이 직업을 선택한 이유는? 🤔</label>
                     <textarea id="motivation" class="textarea-box w-full h-24" placeholder="왜 이 직업이 멋져 보이는지 솔직하게 이야기해 주세요!"></textarea>
                 </div>
-                <button id="submitResumeButton" type="submit" class="button-submit w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
-                    💌 이력서 제출하고 다음 단계로!
-                </button>
-            </form>
-
-            <!-- ✨ New feature: Job Strength Analysis -->
-            <div class="mt-8">
-                <button id="analyzeStrengthsButton" class="w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95" style="background: linear-gradient(45deg, #10B981, #34D399);">
-                    ✨ 이력서 강점 분석하기
-                </button>
-                <div id="strength-analysis-area" class="mt-4 bg-gray-200 p-6 rounded-xl text-left text-lg md:text-xl hidden">
-                    <h3 class="font-bold text-gray-700 mb-2">AI가 분석한 나의 강점</h3>
-                    <div id="strength-analysis-text" class="text-gray-800"></div>
+                
+                <!-- ✨ New feature: Job Strength Analysis -->
+                <div class="mt-8">
+                    <button id="analyzeStrengthsButton" class="w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95" style="background: linear-gradient(45deg, #10B981, #34D399);">
+                        ✨ 이력서 강점 분석하기
+                    </button>
+                    <div id="strength-analysis-area" class="mt-4 bg-gray-200 p-6 rounded-xl text-left text-lg md:text-xl hidden">
+                        <h3 class="font-bold text-gray-700 mb-2">AI가 분석한 나의 강점</h3>
+                        <div id="strength-analysis-text" class="text-gray-800"></div>
+                    </div>
                 </div>
-            </div>
+
+                <div id="submitButtonContainer" class="mt-6 hidden">
+                     <button id="submitResumeButton" type="submit" class="button-submit w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
+                        💌 이력서 제출하고 다음 단계로!
+                    </button>
+                </div>
+            </form>
         </div>
 
         <!-- 2단계: AI 면접 화면 (초기 숨김) -->
@@ -294,19 +297,12 @@
         import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- Firebase Initialization and Auth ---
-        // ✅ 해결 방법: 아래에 있는 코드를 지우고, 선생님의 실제 Firebase 프로젝트 정보를 붙여넣으세요.
-        // Firebase 콘솔 > 프로젝트 설정 > 내 앱 > 웹 앱을 클릭하면 아래와 같은 코드를 복사할 수 있습니다.
-        const firebaseConfig = {
-            apiKey: "AIzaSyDpp2wLF5pWTzvQF3hkOEw8Y5bOUEjYgNw",
-            authDomain: "future-job-explorer.firebaseapp.com",
-            projectId: "future-job-explorer",
-            storageBucket: "future-job-explorer.firebasestorage.app",
-            messagingSenderId: "784138182567",
-            appId: "1:784138182567:web:baf1401238216370cda082",
-            measurementId: "G-CEETXYZFT4"
-        };
-        const appId = firebaseConfig.projectId; // 프로젝트 ID를 앱 ID로 사용합니다.
-        const initialAuthToken = null; // GitHub Pages에서는 사용하지 않습니다.
+        // ✅ 여기에 복사한 Firebase 프로젝트 정보를 붙여넣으세요.
+        // const firebaseConfig = { ... };
+        const firebaseConfig = {}; // REPLACE THIS WITH YOUR ACTUAL CONFIG
+        
+        const appId = firebaseConfig.projectId;
+        const initialAuthToken = null;
 
         let db = null;
         let auth = null;
@@ -350,6 +346,7 @@
             const nameInput = document.getElementById('name');
             const strengthsInput = document.getElementById('strengths');
             const motivationInput = document.getElementById('motivation');
+            const submitButtonContainer = document.getElementById('submitButtonContainer');
 
             const micStatusText = document.getElementById('mic-status-text');
             const micTestVisual = document.getElementById('mic-test-visual');
@@ -367,19 +364,21 @@
             const missionText = document.getElementById('mission-text');
 
             // --- Firebase Initialization and Auth ---
-            // 여기에 복사한 Firebase 프로젝트 정보를 붙여넣으세요.
-            // 예시: const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", ... };
             try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-            
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
+                if (Object.keys(firebaseConfig).length > 0) {
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+                
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
                 } else {
-                    await signInAnonymously(auth);
+                    console.warn("Firebase config not found. Firestore features will be disabled.");
                 }
-                userId = auth.currentUser?.uid || crypto.randomUUID();
             } catch (error) {
                 console.error("Firebase Auth Error:", error);
             }
@@ -743,7 +742,8 @@
             }
 
             // --- ✨ New Gemini Features ---
-            analyzeStrengthsButton.addEventListener('click', async () => {
+            analyzeStrengthsButton.addEventListener('click', async (event) => {
+                event.preventDefault(); // Prevent form submission
                 const strengths = strengthsInput.value;
                 const motivation = motivationInput.value;
                 const job = selectedJobInput.value;
@@ -756,6 +756,7 @@
                 analyzeStrengthsButton.disabled = true;
                 strengthAnalysisArea.classList.remove('hidden');
                 strengthAnalysisText.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
+                submitButtonContainer.classList.add('hidden'); // Hide submit button while analyzing
 
                 const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
@@ -784,6 +785,7 @@
                 } finally {
                     analyzeStrengthsButton.textContent = '✨ 이력서 강점 분석하기';
                     analyzeStrengthsButton.disabled = false;
+                    submitButtonContainer.classList.remove('hidden'); // Show submit button after analysis
                 }
             });
 
@@ -841,4 +843,3 @@
     </script>
 </body>
 </html>
-
