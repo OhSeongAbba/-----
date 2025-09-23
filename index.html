@@ -214,6 +214,17 @@
                     💌 이력서 제출하고 다음 단계로!
                 </button>
             </form>
+
+            <!-- ✨ New feature: Job Strength Analysis -->
+            <div class="mt-8">
+                <button id="analyzeStrengthsButton" class="w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95" style="background: linear-gradient(45deg, #10B981, #34D399);">
+                    ✨ 이력서 강점 분석하기
+                </button>
+                <div id="strength-analysis-area" class="mt-4 bg-gray-200 p-6 rounded-xl text-left text-lg md:text-xl hidden">
+                    <h3 class="font-bold text-gray-700 mb-2">AI가 분석한 나의 강점</h3>
+                    <div id="strength-analysis-text" class="text-gray-800"></div>
+                </div>
+            </div>
         </div>
 
         <!-- 2단계: AI 면접 화면 (초기 숨김) -->
@@ -240,10 +251,10 @@
                 <h3 class="font-bold text-green-700 mb-2">AI 면접관의 피드백 📝</h3>
                 <div id="feedback-text" class="text-green-800"></div>
             </div>
-            <button id="interviewStartButton" class="button-ai-interview text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
+            <button id="interviewStartButton" class="button-ai-interview w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
                 🎙️ 면접 시작하기
             </button>
-            <button id="micButton" class="button-ai-interview text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95 hidden">
+            <button id="micButton" class="button-ai-interview w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95 hidden">
                 🎙️ 답변하기
             </button>
             <div id="mic-status" class="mt-4 text-sm font-semibold text-red-500 hidden">
@@ -263,6 +274,16 @@
             <div id="ranking-list" class="space-y-4 text-left">
                 <!-- 랭킹 아이템이 여기에 동적으로 추가됩니다 -->
             </div>
+             <!-- ✨ New feature: Team Mission Generation -->
+            <div class="mt-8">
+                <button id="generateMissionButton" class="w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95" style="background: linear-gradient(45deg, #FF6B6B, #FFC94A);">
+                    ✨ 우리 팀만의 미션 만들기!
+                </button>
+                <div id="mission-area" class="mt-4 bg-gray-200 p-6 rounded-xl text-left text-lg md:text-xl hidden">
+                    <h3 class="font-bold text-gray-700 mb-2">오늘의 협력 미션</h3>
+                    <div id="mission-text" class="text-gray-800"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -272,6 +293,9 @@
         import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
+        // --- Firebase Initialization and Auth ---
+        // ✅ 해결 방법: 아래에 있는 코드를 지우고, 선생님의 실제 Firebase 프로젝트 정보를 붙여넣으세요.
+        // Firebase 콘솔 > 프로젝트 설정 > 내 앱 > 웹 앱을 클릭하면 아래와 같은 코드를 복사할 수 있습니다.
         const firebaseConfig = {
             apiKey: "AIzaSyDpp2wLF5pWTzvQF3hkOEw8Y5bOUEjYgNw",
             authDomain: "future-job-explorer.firebaseapp.com",
@@ -281,8 +305,8 @@
             appId: "1:784138182567:web:baf1401238216370cda082",
             measurementId: "G-CEETXYZFT4"
         };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const appId = firebaseConfig.projectId; // 프로젝트 ID를 앱 ID로 사용합니다.
+        const initialAuthToken = null; // GitHub Pages에서는 사용하지 않습니다.
 
         let db = null;
         let auth = null;
@@ -335,13 +359,21 @@
             const feedbackText = document.getElementById('feedback-text');
             const micStatus = document.getElementById('mic-status');
             const rankingList = document.getElementById('ranking-list');
+            const analyzeStrengthsButton = document.getElementById('analyzeStrengthsButton');
+            const strengthAnalysisArea = document.getElementById('strength-analysis-area');
+            const strengthAnalysisText = document.getElementById('strength-analysis-text');
+            const generateMissionButton = document.getElementById('generateMissionButton');
+            const missionArea = document.getElementById('mission-area');
+            const missionText = document.getElementById('mission-text');
 
             // --- Firebase Initialization and Auth ---
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            
+            // 여기에 복사한 Firebase 프로젝트 정보를 붙여넣으세요.
+            // 예시: const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", ... };
             try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+            
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } else {
@@ -709,8 +741,103 @@
                     rankingList.innerHTML = '<div class="text-center text-red-500">랭킹을 불러오는 데 실패했어요. 다시 시도해 주세요.</div>';
                 }
             }
+
+            // --- ✨ New Gemini Features ---
+            analyzeStrengthsButton.addEventListener('click', async () => {
+                const strengths = strengthsInput.value;
+                const motivation = motivationInput.value;
+                const job = selectedJobInput.value;
+                if (!strengths || !motivation || !job) {
+                    strengthAnalysisText.textContent = '강점, 동기, 직업을 모두 입력해야 분석할 수 있어요!';
+                    strengthAnalysisArea.classList.remove('hidden');
+                    return;
+                }
+                analyzeStrengthsButton.textContent = '분석 중...';
+                analyzeStrengthsButton.disabled = true;
+                strengthAnalysisArea.classList.remove('hidden');
+                strengthAnalysisText.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
+
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const systemPrompt = `
+                    You are a supportive AI coach for a 6th-grade student. Analyze their strengths and motivation to praise them and relate their traits to their chosen job. Keep the response very short, simple, and encouraging for a child. End with an encouraging closing remark.
+                `;
+                const userQuery = `
+                    학생의 강점: ${strengths}
+                    학생의 지원 동기: ${motivation}
+                    선택한 직업: ${job}
+                    위 정보를 바탕으로 학생의 강점을 분석해 줘.
+                `;
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    const analysis = result.candidates?.[0]?.content?.parts?.[0]?.text || "분석에 실패했어요. 다시 시도해 주세요.";
+                    strengthAnalysisText.textContent = analysis;
+                } catch (error) {
+                    console.error("Analysis error:", error);
+                    strengthAnalysisText.textContent = "분석 중 오류가 발생했어요. 다시 시도해 주세요.";
+                } finally {
+                    analyzeStrengthsButton.textContent = '✨ 이력서 강점 분석하기';
+                    analyzeStrengthsButton.disabled = false;
+                }
+            });
+
+            generateMissionButton.addEventListener('click', async () => {
+                generateMissionButton.textContent = '미션 생성 중...';
+                generateMissionButton.disabled = true;
+                missionArea.classList.remove('hidden');
+                missionText.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
+
+                const teamCode = teamCodeInput.value.trim() || 'default-team';
+                const collectionPath = `/artifacts/${appId}/public/data/team_results`;
+                
+                let teamMembers = [];
+                try {
+                    const q = query(collection(db, collectionPath), where("team", "==", teamCode));
+                    const querySnapshot = await getDocs(q);
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        teamMembers.push({ name: data.name, job: data.job, score: data.score });
+                    });
+                } catch (e) {
+                    console.error("Error fetching team members:", e);
+                }
+
+                const teamInfo = teamMembers.map(member => `${member.job} ${member.name}`).join(', ');
+
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const systemPrompt = `
+                    You are an inspiring game master for a 6th-grade class. Your task is to create a fun, collaborative mission for a team of students based on their chosen future jobs. The mission should require them to work together and use their unique skills. The output should be a single, short paragraph describing the mission.
+                `;
+                const userQuery = `
+                    **Team Members and Jobs:** ${teamInfo}
+                    위 정보를 바탕으로 팀원들이 협력해서 해결할 수 있는 재미있는 미션을 만들어 줘.
+                `;
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    const mission = result.candidates?.[0]?.content?.parts?.[0]?.text || "미션 생성에 실패했어요. 다시 시도해 주세요.";
+                    missionText.textContent = mission;
+                } catch (error) {
+                    console.error("Mission generation error:", error);
+                    missionText.textContent = "미션 생성 중 오류가 발생했어요. 다시 시도해 주세요.";
+                } finally {
+                    generateMissionButton.textContent = '✨ 우리 팀만의 미션 만들기!';
+                    generateMissionButton.disabled = false;
+                }
+            });
         });
     </script>
 </body>
 </html>
-
