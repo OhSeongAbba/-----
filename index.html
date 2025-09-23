@@ -236,7 +236,7 @@
                 2단계 | AI 면접관과 대화하기
             </h2>
             <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6" id="interview-intro">
-                AI 면접관을 만나 볼 시간이에요!<br>아래 '면접 시작하기' 버튼을 눌러주세요.
+                AI 면접관을 만나 볼 시간이에요! 아래 '면접 시작하기' 버튼을 눌러주세요.
             </p>
             <div class="bg-gray-200 p-6 rounded-xl mb-6 shadow-inner text-left text-lg md:text-xl">
                 <h3 class="font-bold text-gray-700 mb-2">AI 면접관의 질문</h3>
@@ -268,12 +268,19 @@
         <!-- 3단계: 랭킹 화면 (초기 숨김) -->
         <div id="ranking-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
-                3단계 | 전문가 랭킹 발표!
+                3단계 | 전문가 면접 점수 발표!
             </h2>
             <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6">
                 같은 직업을 선택한 친구들의 랭킹이에요! <br>
-                면접 점수가 가장 높은 친구는 누구일까요?
+                점수가 가장 높은 친구는 누구일까요?
             </p>
+            <div class="bg-blue-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl">
+                <h3 class="font-bold text-blue-700 mb-2">나의 점수</h3>
+                <div id="my-scores" class="text-blue-800">
+                    <p>이력서 점수: <span id="resume-score"></span>점</p>
+                    <p>면접 점수: <span id="interview-score"></span>점</p>
+                </div>
+            </div>
             <div id="ranking-list" class="space-y-4 text-left">
                 <!-- 랭킹 아이템이 여기에 동적으로 추가됩니다 -->
             </div>
@@ -325,7 +332,8 @@
         
         let userName = '';
         let userJob = '';
-        let finalScore = 0;
+        let finalInterviewScore = 0;
+        let finalResumeScore = 0;
         
         document.addEventListener("DOMContentLoaded", async () => {
             const startScreen = document.getElementById('start-screen');
@@ -362,6 +370,9 @@
             const generateMissionButton = document.getElementById('generateMissionButton');
             const missionArea = document.getElementById('mission-area');
             const missionText = document.getElementById('mission-text');
+            const myResumeScoreSpan = document.getElementById('resume-score');
+            const myInterviewScoreSpan = document.getElementById('interview-score');
+
 
             // --- Firebase Initialization and Auth ---
             try {
@@ -531,9 +542,8 @@
 
             async function startInterviewFlow() {
                 if (currentQuestionIndex >= interviewQuestions.length) {
-                    finalScore = Math.floor(finalScore / interviewQuestions.length);
-                    await saveUserData(userName, userJob, finalScore, motivationInput.value, strengthsInput.value);
-                    await showRanking();
+                    await saveUserData(userName, userJob, finalInterviewScore, motivationInput.value, strengthsInput.value, finalResumeScore);
+                    showRanking();
                     return;
                 }
 
@@ -569,11 +579,12 @@
                             micStatus.classList.add('hidden');
                             const question = aiQuestionDiv.textContent;
                             const { feedback, score } = await getAiFeedback(question, transcript);
-                            finalScore += score;
+                            finalInterviewScore += score;
                             feedbackArea.classList.remove('hidden');
                             feedbackText.textContent = feedback;
                             micButton.textContent = '다음 질문 받기';
                             micButton.disabled = false;
+                            currentQuestionIndex++; // Move to next question after getting feedback
                         };
                         recognition.onend = () => {
                              micStatus.classList.add('hidden');
@@ -626,7 +637,7 @@
             });
 
             // --- Firestore Functions ---
-            async function saveUserData(name, job, score, motivation, strengths) {
+            async function saveUserData(name, job, interviewScore, motivation, strengths, resumeScore) {
                 if (!db || !userId) {
                     console.error("Firestore is not initialized.");
                     return;
@@ -638,7 +649,8 @@
                         userId: userId,
                         name: name,
                         job: job,
-                        score: score,
+                        interviewScore: interviewScore,
+                        resumeScore: resumeScore,
                         motivation: motivation,
                         strengths: strengths,
                         team: teamCode,
@@ -651,6 +663,9 @@
 
             async function showRanking() {
                 showScreen('ranking-screen');
+                myResumeScoreSpan.textContent = finalResumeScore;
+                myInterviewScoreSpan.textContent = finalInterviewScore;
+
                 rankingList.innerHTML = '<div class="text-center text-gray-600"><div class="loading-dots"><span>.</span><span>.</span><span>.</span></div> 랭킹을 불러오는 중...</div>';
                 const teamCode = teamCodeInput.value.trim() || 'default-team';
                 const collectionPath = `/artifacts/${appId}/public/data/team_results`;
@@ -664,7 +679,7 @@
                         rankingData.push(data);
                     });
                     
-                    rankingData.sort((a, b) => b.score - a.score);
+                    rankingData.sort((a, b) => b.interviewScore - a.interviewScore);
 
                     rankingList.innerHTML = '';
                     if (rankingData.length === 0) {
@@ -682,7 +697,10 @@
                                 <div class="text-lg font-bold text-gray-800">${item.name}</div>
                                 <div class="text-sm text-gray-500">${item.job}</div>
                             </div>
-                            <span class="rank-score">${item.score}점</span>
+                            <div class="ml-auto text-right">
+                                <span class="block text-sm text-gray-500">이력서: ${item.resumeScore}점</span>
+                                <span class="block text-2xl font-bold text-green-600">면접: ${item.interviewScore}점</span>
+                            </div>
                         `;
                         rankingList.appendChild(rankItem);
                     });
@@ -693,6 +711,40 @@
             }
 
             // --- ✨ New Gemini Features ---
+            async function getResumeScore(strengths, motivation, job) {
+                const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const systemPrompt = `
+                    You are a professional resume analyst. Your task is to evaluate a 6th grader's resume strengths and motivation for their chosen job. Based on the relevance and detail, assign a score from 1 to 100. The score must be an integer. The response must be a JSON object with 'feedback' and 'score' properties.
+                    - 'feedback' should be a friendly, short sentence of praise, and a single-sentence suggestion for improvement.
+                    - The tone must be simple and supportive.
+                    - Example JSON: { "feedback": "지원 동기가 매우 구체적이라서 좋아요! 강점에 대한 경험을 더 자세히 적으면 완벽할 것 같아요.", "score": 90 }
+                `;
+                const userQuery = `
+                    **강점:** ${strengths}
+                    **지원 동기:** ${motivation}
+                    **선택 직업:** ${job}
+                    위 정보를 바탕으로 이력서 점수를 1-100점 사이로 매겨주고, 피드백을 JSON 객체 형식으로 알려줘.
+                `;
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: { responseMimeType: "application/json" }
+                };
+
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) {
+                        return JSON.parse(text);
+                    }
+                } catch (error) {
+                    console.error("Resume score analysis error:", error);
+                }
+                return { feedback: "점수 분석에 실패했어요.", score: 0 };
+            }
+
             analyzeStrengthsButton.addEventListener('click', async (event) => {
                 event.preventDefault(); // Prevent form submission
                 const strengths = strengthsInput.value;
@@ -709,35 +761,13 @@
                 strengthAnalysisText.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
                 submitButtonContainer.classList.add('hidden'); // Hide submit button while analyzing
 
-                const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                const systemPrompt = `
-                    You are a supportive AI coach for a 6th-grade student. Analyze their strengths and motivation to praise them and relate their traits to their chosen job. Keep the response very short, simple, and encouraging for a child. End with an encouraging closing remark.
-                `;
-                const userQuery = `
-                    학생의 강점: ${strengths}
-                    학생의 지원 동기: ${motivation}
-                    선택한 직업: ${job}
-                    위 정보를 바탕으로 학생의 강점을 분석해 줘.
-                `;
-                const payload = {
-                    contents: [{ parts: [{ text: userQuery }] }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] }
-                };
+                const { feedback, score } = await getResumeScore(strengths, motivation, job);
+                finalResumeScore = score;
+                strengthAnalysisText.textContent = `${feedback} (점수: ${score}점)`;
 
-                try {
-                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    const result = await response.json();
-                    const analysis = result.candidates?.[0]?.content?.parts?.[0]?.text || "분석에 실패했어요. 다시 시도해 주세요.";
-                    strengthAnalysisText.textContent = analysis;
-                } catch (error) {
-                    console.error("Analysis error:", error);
-                    strengthAnalysisText.textContent = "분석 중 오류가 발생했어요. 다시 시도해 주세요.";
-                } finally {
-                    analyzeStrengthsButton.textContent = '✨ 이력서 강점 분석하기';
-                    analyzeStrengthsButton.disabled = false;
-                    submitButtonContainer.classList.remove('hidden'); // Show submit button after analysis
-                }
+                analyzeStrengthsButton.textContent = '✨ 이력서 강점 분석하기';
+                analyzeStrengthsButton.disabled = false;
+                submitButtonContainer.classList.remove('hidden'); // Show submit button after analysis
             });
 
             generateMissionButton.addEventListener('click', async () => {
