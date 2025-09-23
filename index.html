@@ -272,7 +272,15 @@
         import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpp2wLF5pWTzvQF3hkOEw8Y5bOUEjYgNw",
+            authDomain: "future-job-explorer.firebaseapp.com",
+            projectId: "future-job-explorer",
+            storageBucket: "future-job-explorer.firebasestorage.app",
+            messagingSenderId: "784138182567",
+            appId: "1:784138182567:web:baf1401238216370cda082",
+            measurementId: "G-CEETXYZFT4"
+        };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
@@ -705,3 +713,4 @@
     </script>
 </body>
 </html>
+
