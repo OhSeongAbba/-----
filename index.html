@@ -527,7 +527,7 @@
             }
 
             async function getAiVoice(text) {
-                const apiKey = "";
+                const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
                 const payload = {
                     contents: [{ parts: [{ text: text }] }],
@@ -560,7 +560,7 @@
             }
 
             async function getAiFeedback(question, answer) {
-                const apiKey = "";
+                const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const systemPrompt = `
                     You are a friendly AI interview coach for a 6th-grade student. Your role is to give helpful and positive feedback and a score on their interview answers.
@@ -757,7 +757,7 @@
                 strengthAnalysisArea.classList.remove('hidden');
                 strengthAnalysisText.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
 
-                const apiKey = "";
+                const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const systemPrompt = `
                     You are a supportive AI coach for a 6th-grade student. Analyze their strengths and motivation to praise them and relate their traits to their chosen job. Keep the response very short, simple, and encouraging for a child. End with an encouraging closing remark.
@@ -810,7 +810,7 @@
 
                 const teamInfo = teamMembers.map(member => `${member.job} ${member.name}`).join(', ');
 
-                const apiKey = "";
+                const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const systemPrompt = `
                     You are an inspiring game master for a 6th-grade class. Your task is to create a fun, collaborative mission for a team of students based on their chosen future jobs. The mission should require them to work together and use their unique skills. The output should be a single, short paragraph describing the mission.
@@ -841,3 +841,4 @@
     </script>
 </body>
 </html>
+
