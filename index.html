@@ -605,7 +605,23 @@
                     currentQuestionIndex++;
                     startInterviewFlow();
                 } else {
-                    startRecognition();
+                    if (micPermissionGranted) {
+                        startRecognition();
+                    } else {
+                        // Show a message box if mic permission is not granted
+                        const messageBox = document.createElement('div');
+                        messageBox.className = "fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50";
+                        messageBox.innerHTML = `
+                            <div class="bg-white p-8 rounded-lg shadow-lg text-center">
+                                <p class="text-gray-800 text-lg font-bold mb-4">마이크 권한이 허용되지 않았습니다.<br>마이크 테스트 화면에서 먼저 권한을 허용해 주세요.</p>
+                                <button class="bg-purple-600 text-white px-6 py-2 rounded-full font-bold">확인</button>
+                            </div>
+                        `;
+                        document.body.appendChild(messageBox);
+                        messageBox.querySelector('button').addEventListener('click', () => {
+                            messageBox.remove();
+                        });
+                    }
                 }
             });
 
