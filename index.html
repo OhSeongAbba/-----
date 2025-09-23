@@ -236,7 +236,7 @@
                 2단계 | AI 면접관과 대화하기
             </h2>
             <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6" id="interview-intro">
-                AI 면접관을 만나 볼 시간이에요!<br>아래 '면접 시작하기' 버튼을 눌러주세요.
+                AI 면접관을 만나 볼 시간이에요! 아래 '면접 시작하기' 버튼을 눌러주세요.
             </p>
             <div class="bg-gray-200 p-6 rounded-xl mb-6 shadow-inner text-left text-lg md:text-xl">
                 <h3 class="font-bold text-gray-700 mb-2">AI 면접관의 질문</h3>
@@ -271,8 +271,7 @@
                 3단계 | 전문가 면접 점수 발표!
             </h2>
             <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6">
-                같은 직업을 선택한 친구들의 랭킹이에요! <br>
-                점수가 가장 높은 친구는 누구일까요?
+                면접을 통해 얻은 점수를 확인해 볼까요?
             </p>
             <div class="bg-blue-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl">
                 <h3 class="font-bold text-blue-700 mb-2">나의 점수</h3>
@@ -281,7 +280,7 @@
                     <p>면접 점수: <span id="interview-score"></span>점</p>
                 </div>
             </div>
-            <div id="ranking-list" class="space-y-4 text-left">
+            <div id="ranking-list" class="space-y-4 text-left hidden">
                 <!-- 랭킹 아이템이 여기에 동적으로 추가됩니다 -->
             </div>
              <!-- ✨ New feature: Team Mission Generation -->
@@ -556,7 +555,7 @@
                 aiQuestionDiv.textContent = question;
                 
                 // 음성 재생 대신 질문이 바로 보이도록 변경
-                myAnswerDiv.innerHTML = '<span class="text-gray-500">준비되면 답변하기 버튼을 눌러주세요.</span>';
+                myAnswerDiv.innerHTML = '<span class="text-gray-500">준비되면 버튼을 눌러주세요.</span>';
                 micButton.textContent = '🎙️ 답변 시작하기';
                 micButton.disabled = false;
             }
@@ -666,48 +665,9 @@
                 myResumeScoreSpan.textContent = finalResumeScore;
                 myInterviewScoreSpan.textContent = finalInterviewScore;
 
-                rankingList.innerHTML = '<div class="text-center text-gray-600"><div class="loading-dots"><span>.</span><span>.</span><span>.</span></div> 랭킹을 불러오는 중...</div>';
-                const teamCode = teamCodeInput.value.trim() || 'default-team';
-                const collectionPath = `/artifacts/${appId}/public/data/team_results`;
-                
-                try {
-                    const q = query(collection(db, collectionPath), where("team", "==", teamCode));
-                    const querySnapshot = await getDocs(q);
-                    let rankingData = [];
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        rankingData.push(data);
-                    });
-                    
-                    rankingData.sort((a, b) => b.interviewScore - a.interviewScore);
-
-                    rankingList.innerHTML = '';
-                    if (rankingData.length === 0) {
-                        rankingList.innerHTML = '<div class="text-center text-gray-600">아직 랭킹 데이터가 없어요. 첫 번째로 도전해 보세요!</div>';
-                        return;
-                    }
-
-                    rankingData.forEach((item, index) => {
-                        const isSelf = item.userId === userId;
-                        const rankItem = document.createElement('div');
-                        rankItem.className = `ranking-item ${isSelf ? 'self' : ''}`;
-                        rankItem.innerHTML = `
-                            <span class="rank-number">${index + 1}</span>
-                            <div class="ml-4">
-                                <div class="text-lg font-bold text-gray-800">${item.name}</div>
-                                <div class="text-sm text-gray-500">${item.job}</div>
-                            </div>
-                            <div class="ml-auto text-right">
-                                <span class="block text-sm text-gray-500">이력서: ${item.resumeScore}점</span>
-                                <span class="block text-2xl font-bold text-green-600">면접: ${item.interviewScore}점</span>
-                            </div>
-                        `;
-                        rankingList.appendChild(rankItem);
-                    });
-                } catch (e) {
-                    console.error("Error fetching documents: ", e);
-                    rankingList.innerHTML = '<div class="text-center text-red-500">랭킹을 불러오는 데 실패했어요. 다시 시도해 주세요.</div>';
-                }
+                // Removed ranking list
+                const rankingList = document.getElementById('ranking-list');
+                rankingList.innerHTML = '';
             }
 
             // --- ✨ New Gemini Features ---
@@ -785,7 +745,7 @@
                     const querySnapshot = await getDocs(q);
                     querySnapshot.forEach((doc) => {
                         const data = doc.data();
-                        teamMembers.push({ name: data.name, job: data.job, score: data.score });
+                        teamMembers.push({ name: data.name, job: data.job, interviewScore: data.interviewScore, resumeScore: data.resumeScore });
                     });
                 } catch (e) {
                     console.error("Error fetching team members:", e);
@@ -824,5 +784,3 @@
     </script>
 </body>
 </html>
-
-
