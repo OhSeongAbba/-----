@@ -159,7 +159,7 @@
         <!-- 시작 화면 (초기 숨김) -->
         <div id="start-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto transform transition-all hover:scale-105 duration-500">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 drop-shadow-lg bouncing-text">
-                미래 직업 탐험대(15:25)
+                미래 직업 탐험대
             </h1>
             <h2 class="text-xl sm:text-2xl md:text-3xl font-semibold mb-6 text-gray-700">
                 AI 면접 & 직업 배틀!
@@ -625,7 +625,7 @@
                             const source = audioContext.createMediaStreamSource(stream);
                             source.connect(analyser);
                             analyser.fftSize = 256;
-                            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                            const dataArray = new Uint8-Array(analyser.frequencyBinCount);
 
                             function updateVisual() {
                                 if (!micCheckScreen.classList.contains('hidden')) {
@@ -1060,7 +1060,7 @@
                     **특별한 경험:** ${specialExperience}
                     **지원 동기:** ${motivation}
                     **선택 직업:** ${job}
-                    위 정보를 바탕으로 이력서 점수를 1-100점 사이로 매겨주고, 피드백을 JSON 객체 형식으로 알려줘.
+                    Based on these details, explain the reason for the resume score in one sentence.
                 `;
                 const payload = {
                     contents: [{ parts: [{ text: userQuery }] }],
