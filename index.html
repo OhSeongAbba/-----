@@ -246,9 +246,7 @@
             </div>
             <div class="bg-blue-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl">
                 <h3 class="font-bold text-blue-700 mb-2">나의 답변</h3>
-                <div id="my-answer" class="text-blue-800">
-                    <span class="text-gray-500">준비되면 버튼을 눌러주세요.</span>
-                </div>
+                <textarea id="my-answer-text" class="textarea-box w-full h-24 font-sans tracking-wide text-gray-800" placeholder="여기에 답변을 작성해 보세요."></textarea>
             </div>
             <div id="feedback-area" class="bg-green-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl hidden">
                 <h3 class="font-bold text-green-700 mb-2">AI 면접관의 피드백 📝</h3>
@@ -358,7 +356,7 @@
             const micStatusText = document.getElementById('mic-status-text');
             const micTestVisual = document.getElementById('mic-test-visual');
             const aiQuestionDiv = document.getElementById('ai-question');
-            const myAnswerDiv = document.getElementById('my-answer');
+            const myAnswerTextarea = document.getElementById('my-answer-text');
             const feedbackArea = document.getElementById('feedback-area');
             const feedbackText = document.getElementById('feedback-text');
             const micStatus = document.getElementById('mic-status');
@@ -547,23 +545,21 @@
                 }
 
                 aiQuestionDiv.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
-                myAnswerDiv.innerHTML = '<span class="text-gray-500">질문을 준비 중입니다...</span>';
+                myAnswerTextarea.value = '';
                 feedbackArea.classList.add('hidden');
                 feedbackText.textContent = '';
                 
                 const question = interviewQuestions[currentQuestionIndex];
                 aiQuestionDiv.textContent = question;
                 
-                // 음성 재생 대신 질문이 바로 보이도록 변경
-                myAnswerDiv.innerHTML = '<span class="text-gray-500">준비되면 버튼을 눌러주세요.</span>';
-                micButton.textContent = '🎙️ 답변 시작하기';
+                myAnswerTextarea.placeholder = '여기에 답변을 작성해 보세요.';
+                micButton.textContent = '🎙️ 답변하기';
                 micButton.disabled = false;
             }
 
             function startRecognition() {
                 micButton.disabled = true;
                 micStatus.classList.remove('hidden');
-                myAnswerDiv.innerHTML = '<span class="text-purple-600 font-bold">말하는 중...</span>';
                 
                 if (recognition) {
                     recognition.start();
@@ -572,9 +568,18 @@
                         recognition = new webkitSpeechRecognition();
                         recognition.continuous = false;
                         recognition.lang = 'ko-KR';
+                        
+                        // Use typed text as initial value
+                        recognition.onstart = () => {
+                            if(myAnswerTextarea.value.length > 0) {
+                                myAnswerTextarea.value = myAnswerTextarea.value + ' ';
+                            }
+                        };
+
                         recognition.onresult = async (event) => {
                             const transcript = event.results[0][0].transcript;
-                            myAnswerDiv.textContent = transcript;
+                            myAnswerTextarea.value = transcript;
+                            
                             micStatus.classList.add('hidden');
                             const question = aiQuestionDiv.textContent;
                             const { feedback, score } = await getAiFeedback(question, transcript);
@@ -583,12 +588,14 @@
                             feedbackText.textContent = feedback;
                             micButton.textContent = '다음 질문 받기';
                             micButton.disabled = false;
-                            currentQuestionIndex++; // Move to next question after getting feedback
+                            currentQuestionIndex++;
                         };
                         recognition.onend = () => {
                              micStatus.classList.add('hidden');
                              micButton.disabled = false;
-                             micButton.textContent = '🎙️ 다시 답변하기';
+                             if(micButton.textContent === '🎙️ 답변하기') {
+                                micButton.textContent = '🎙️ 다시 답변하기';
+                             }
                         };
                         recognition.start();
                     } else {
