@@ -159,14 +159,14 @@
         <!-- 시작 화면 (초기 숨김) -->
         <div id="start-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto transform transition-all hover:scale-105 duration-500">
             <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600 drop-shadow-lg bouncing-text">
-                미래 직업 탐험대
+                미래 직업 탐험대(15:25)
             </h1>
             <h2 class="text-xl sm:text-2xl md:text-3xl font-semibold mb-6 text-gray-700">
-                이력서 작성 & AI 면접!
+                AI 면접 & 직업 배틀!
             </h2>
             <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-8">
                 친구들, 미래의 전문가가 될 준비됐나요? <br>
-                내 손으로 직접 이력서도 작성해 보고, AI 면접관과 함께 멋진 직업도 찾으러 떠나봐요!
+                AI 면접관과 함께 멋진 직업도 찾고, 다른 팀과 신나는 미션을 해결하러 떠나봐요!
                 지금 바로 여러분의 코드를 입력하고 모험을 시작해요!
             </p>
             <div class="mb-8">
@@ -306,20 +306,36 @@
             </div>
         </div>
 
-        <!-- 3단계: 랭킹 화면 (초기 숨김) -->
-        <div id="ranking-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
+        <!-- 3단계: 최종 결과 화면 (초기 숨김) -->
+        <div id="hiring-result-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
-                3단계 | 전문가 면접 점수 발표!
+                최종 결과 발표!
+            </h2>
+            <div class="bg-blue-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl">
+                <h3 class="font-bold text-blue-700 mb-2" id="hiring-status-title">채용 결과</h3>
+                <p id="hiring-status" class="text-3xl font-bold mb-4"></p>
+                <p id="hiring-status-text" class="text-gray-800"></p>
+            </div>
+            <button id="finalResultButton" class="button-next w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95">
+                점수 확인하기!
+            </button>
+        </div>
+
+        <!-- 3단계: 점수 공개 화면 (초기 숨김) -->
+        <div id="final-score-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
+                점수 공개!
             </h2>
             <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6">
-                면접을 통해 얻은 점수를 확인해 볼까요?
+                이력서와 면접을 통해 얻은 점수를 확인해 볼까요?
             </p>
             <div class="bg-blue-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl">
-                <h3 class="font-bold text-blue-700 mb-2">나의 점수</h3>
-                <div id="my-scores" class="text-blue-800">
-                    <p>이력서 점수: <span id="resume-score"></span>점</p>
-                    <p>면접 점수: <span id="interview-score"></span>점</p>
-                </div>
+                <h3 class="font-bold text-blue-700 mb-2">이력서 점수: <span id="final-resume-score"></span>점</h3>
+                <div id="resume-score-reason" class="text-gray-800"></div>
+            </div>
+            <div class="bg-green-100 p-6 rounded-xl mb-8 shadow-inner text-left text-lg md:text-xl">
+                <h3 class="font-bold text-green-700 mb-2">면접 점수: <span id="final-interview-score"></span>점</h3>
+                <div id="interview-score-reason" class="text-gray-800"></div>
             </div>
             <div id="ranking-list" class="space-y-4 text-left hidden">
                 <!-- 랭킹 아이템이 여기에 동적으로 추가됩니다 -->
