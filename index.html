@@ -173,13 +173,13 @@
             </button>
         </div>
 
-        <!-- 1단계: 이력서 작성 화면 (초기 숨김) -->
+        <!-- 1단계: 직업/회사 선택 & 이력서 작성 (초기 숨김) -->
         <div id="job-selection-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
-                1단계 | 직업 선택 및 이력서 작성
+                1단계 | 직업 선택
             </h2>
             <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6">
-                당신의 꿈은 무엇인가요? 아래 목록에서 당신이 되고 싶은 미래 직업을 하나 선택하고, 멋진 이력서를 만들어 보세요!
+                당신이 꿈꾸는 미래 직업과 지원하고 싶은 회사를 선택해 보세요!
             </p>
             <div class="mb-6">
                 <label for="job-select" class="block text-lg sm:text-xl font-bold mb-2 text-gray-700">탐험하고 싶은 직업을 골라볼까?</label>
@@ -193,6 +193,32 @@
                     <option value="의사">의사 (치료의 히어로)</option>
                 </select>
             </div>
+            
+            <div id="company-selection-area" class="mb-6 hidden">
+                <label for="company-select" class="block text-lg sm:text-xl font-bold mb-2 text-gray-700">어떤 회사에 지원할까요?</label>
+                <select id="company-select" class="select-box w-full text-lg sm:text-xl text-center">
+                    <option value="">-- 회사를 선택해 주세요 --</option>
+                </select>
+            </div>
+
+            <div id="company-info-area" class="mt-8 bg-gray-200 p-6 rounded-xl text-left text-lg md:text-xl hidden">
+                <h3 class="font-bold text-gray-700 mb-2">✨ 인재상 미리보기!</h3>
+                <div id="company-info-text" class="text-gray-800"></div>
+            </div>
+
+            <button id="goToResumeButton" class="button-submit w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95 mt-8 hidden">
+                💌 이력서 작성하러 가기!
+            </button>
+        </div>
+
+        <!-- 1-2단계: 이력서 작성 페이지 (초기 숨김) -->
+        <div id="resume-form-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 stage-title">
+                1단계 | 이력서 작성
+            </h2>
+            <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-6">
+                선택한 회사에 맞는 멋진 이력서를 만들어 볼까요?
+            </p>
             <form id="resume-form" class="text-left">
                 <div class="mb-4">
                     <label for="name" class="block text-lg font-bold mb-2 text-gray-700">이름이 뭐예요? ✨</label>
@@ -200,18 +226,25 @@
                 </div>
                 <div class="mb-4">
                     <label for="selected-job" class="block text-lg font-bold mb-2 text-gray-700">선택한 직업</label>
-                    <input type="text" id="selected-job" class="input-box w-full bg-gray-200" readonly>
+                    <input type="text" id="selected-job-resume" class="input-box w-full bg-gray-200" readonly>
+                </div>
+                <div class="mb-4">
+                    <label for="selected-company" class="block text-lg font-bold mb-2 text-gray-700">지원 회사</label>
+                    <input type="text" id="selected-company-resume" class="input-box w-full bg-gray-200" readonly>
                 </div>
                 <div class="mb-4">
                     <label for="strengths" class="block text-lg font-bold mb-2 text-gray-700">내가 가진 특별한 능력은? 💪</label>
                     <textarea id="strengths" class="textarea-box w-full h-24" placeholder="이 직업에 꼭 필요한 나만의 강점을 마음껏 자랑해 주세요!"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="qualifications" class="block text-lg font-bold mb-2 text-gray-700">나의 특별한 경험! 🌟</label>
+                    <textarea id="qualifications" class="textarea-box w-full h-24" placeholder="자격증이나 특별한 활동 경험, 대회 수상 경력 등을 적어 보세요!"></textarea>
                 </div>
                 <div class="mb-6">
                     <label for="motivation" class="block text-lg font-bold mb-2 text-gray-700">이 직업을 선택한 이유는? 🤔</label>
                     <textarea id="motivation" class="textarea-box w-full h-24" placeholder="왜 이 직업이 멋져 보이는지 솔직하게 이야기해 주세요!"></textarea>
                 </div>
                 
-                <!-- ✨ New feature: Job Strength Analysis -->
                 <div class="mt-8">
                     <button id="analyzeStrengthsButton" class="w-full text-white font-bold py-4 px-8 rounded-full text-xl sm:text-2xl md:text-3xl shadow-lg transform active:scale-95" style="background: linear-gradient(45deg, #10B981, #34D399);">
                         ✨ 이력서 강점 분석하기
@@ -229,6 +262,7 @@
                 </div>
             </form>
         </div>
+
 
         <!-- 2단계: AI 면접 화면 (초기 숨김) -->
         <div id="ai-interview-screen" class="hidden card p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto">
@@ -326,16 +360,66 @@
         let currentQuestionIndex = 0;
         let micPermissionGranted = false;
 
-        const interviewQuestions = [
-            "안녕하세요, 미래의 전문가님. 간단한 자기소개를 해볼까요?",
-            "이 직업을 선택한 이유는 무엇인가요?",
-            "이 직업을 위해 어떤 준비를 할 수 있을까요?",
-            "가장 좋아하는 취미는 무엇인가요?",
-            "친구들과 함께 문제를 해결한 경험이 있나요?"
-        ];
+        const companyInfo = {
+            "개발자": {
+                companies: ["코드랩", "앱스타"],
+                "코드랩": "코드랩은 재미있는 게임과 앱을 만드는 회사예요. 새로운 도전을 좋아하고, 친구들과 함께 멋진 코딩 프로젝트를 만들고 싶은 사람을 찾고 있어요!",
+                "앱스타": "앱스타는 사람들이 더 편리하게 생활할 수 있는 스마트한 앱을 만드는 곳이에요. 평소에 불편했던 점을 찾아내서 해결하는 것에 관심이 많은 사람을 기다리고 있어요."
+            },
+            "디자이너": {
+                companies: ["아름다운 디자인", "크리에이티브 스튜디오"],
+                "아름다운 디자인": "아름다운 디자인은 사람들에게 행복을 주는 그림과 캐릭터를 만들어요. 상상력이 풍부하고, 자신의 생각을 그림으로 표현하는 것을 좋아하는 사람을 찾고 있어요.",
+                "크리에이티브 스튜디오": "크리에이티브 스튜디오는 멋진 포스터와 웹사이트를 만드는 회사예요. 다른 사람들에게 특별한 메시지를 전달하는 디자인을 만들고 싶은 사람에게 딱 맞는 곳이에요."
+            },
+            "마케터": {
+                companies: ["아이디어 연구소", "브랜드메이커"],
+                "아이디어 연구소": "아이디어 연구소는 반짝이는 아이디어를 모아 새로운 제품을 성공시키는 곳이에요. 호기심이 많고, 사람들의 마음을 움직이는 방법을 잘 아는 사람을 찾고 있어요.",
+                "브랜드메이커": "브랜드메이커는 회사나 상품의 멋진 이미지를 만들어주는 전문가들이 모인 곳이에요. 사람들이 어떤 것에 관심이 있는지 잘 관찰하고, 재미있는 이야기를 만드는 것을 좋아하는 사람을 기다리고 있어요."
+            },
+            "과학자": {
+                companies: ["미래 과학 연구소", "스페이스랩"],
+                "미래 과학 연구소": "미래 과학 연구소는 세상의 문제를 해결할 새로운 과학 기술을 연구해요. 왜 그럴까? 어떻게 될까? 같은 질문을 자주 하는 호기심쟁이를 찾고 있어요.",
+                "스페이스랩": "스페이스랩은 우주를 탐험하고 새로운 행성을 찾는 연구를 해요. 밤하늘의 별을 보며 우주를 상상하는 것을 좋아하는 사람을 기다리고 있어요."
+            },
+            "요리사": {
+                companies: ["맛있는 키친", "행복한 빵집"],
+                "맛있는 키친": "맛있는 키친은 사람들에게 최고의 맛을 선물하는 요리사들이 모인 곳이에요. 여러 가지 재료를 조합하여 새로운 맛을 내는 것을 좋아하는 사람을 찾고 있어요.",
+                "행복한 빵집": "행복한 빵집은 사람들의 기분을 좋게 만드는 달콤한 빵을 만들어요. 반죽을 만지고, 빵이 부풀어 오르는 과정을 지켜보는 것을 좋아하는 사람을 기다리고 있어요."
+            },
+            "의사": {
+                companies: ["밝은 병원", "친절한 의료센터"],
+                "밝은 병원": "밝은 병원은 환자들이 아프지 않고 건강하게 지낼 수 있도록 도와주는 곳이에요. 다른 사람을 보살피고, 힘든 친구를 보면 도와주고 싶은 마음이 드는 사람을 찾고 있어요.",
+                "친절한 의료센터": "친절한 의료센터는 환자들의 마음까지 보듬어주는 것을 중요하게 생각해요. 따뜻한 마음으로 사람들을 위로하고, 건강에 대한 지식을 배우는 것을 좋아하는 사람에게 딱 맞는 곳이에요."
+            }
+        };
+
+        const companyQuestions = {
+            "개발자": {
+                "코드랩": ["코드랩에 지원한 이유는 무엇인가요?", "새로운 코딩 기술을 배우는 나만의 방법은 무엇인가요?", "친구와 함께 코딩 프로젝트를 해본 경험이 있나요?"],
+                "앱스타": ["앱스타에 지원한 이유는 무엇인가요?", "가장 좋아하는 앱은 무엇이며, 왜 좋아하는지 말해볼까요?", "평소에 스마트폰을 어떻게 사용하는지 말해줄 수 있나요?"]
+            },
+            "디자이너": {
+                "아름다운 디자인": ["아름다운 디자인에 지원한 이유는 무엇인가요?", "가장 좋아하는 색깔 조합은 무엇이며, 그 이유는 무엇인가요?", "자신이 가장 좋아하는 캐릭터를 그려본 적이 있나요?"]
+            },
+            "마케터": {
+                "아이디어 연구소": ["아이디어 연구소에 지원한 이유는 무엇인가요?", "가장 좋아하는 과자를 어떻게 하면 더 많은 친구들에게 알릴 수 있을까요?", "우리 반의 자랑거리를 소개하는 포스터를 만든다면 어떤 내용을 넣고 싶나요?"]
+            },
+            "과학자": {
+                "미래 과학 연구소": ["미래 과학 연구소에 지원한 이유는 무엇인가요?", "가장 좋아하는 과학 실험이 있나요? 어떤 실험이었는지 설명해 주세요.", "세상에서 가장 신기하다고 생각하는 발명품은 무엇인가요?"]
+            },
+            "요리사": {
+                "맛있는 키친": ["맛있는 키친에 지원한 이유는 무엇인가요?", "가장 자신 있는 요리는 무엇이고, 어떻게 만들 수 있나요?", "친구들에게 어떤 음식을 만들어주고 싶나요?"]
+            },
+            "의사": {
+                "밝은 병원": ["밝은 병원에 지원한 이유는 무엇인가요?", "아픈 친구를 어떻게 위로해줄 수 있을까요?", "환자를 돌보는 것에서 가장 중요하다고 생각하는 것은 무엇인가요?"]
+            }
+        };
+
+        let currentQuestions = [];
         
         let userName = '';
         let userJob = '';
+        let userCompany = '';
         let finalInterviewScore = 0;
         let finalResumeScore = 0;
         
@@ -343,11 +427,13 @@
             const startScreen = document.getElementById('start-screen');
             const micCheckScreen = document.getElementById('mic-check-screen');
             const jobSelectionScreen = document.getElementById('job-selection-screen');
+            const resumeFormScreen = document.getElementById('resume-form-screen'); // New resume screen
             const aiInterviewScreen = document.getElementById('ai-interview-screen');
             const rankingScreen = document.getElementById('ranking-screen');
 
             const startButton = document.getElementById('startButton');
             const micCheckButton = document.getElementById('micCheckButton');
+            const goToResumeButton = document.getElementById('goToResumeButton');
             const submitResumeButton = document.getElementById('submitResumeButton');
             const interviewStartButton = document.getElementById('interviewStartButton');
             const micButton = document.getElementById('micButton');
@@ -355,9 +441,18 @@
             
             const jobSelect = document.getElementById('job-select');
             const selectedJobInput = document.getElementById('selected-job');
+            const companySelect = document.getElementById('company-select');
+            const companySelectionArea = document.getElementById('company-selection-area');
+            const companyInfoArea = document.getElementById('company-info-area');
+            const companyInfoText = document.getElementById('company-info-text');
+
             const nameInput = document.getElementById('name');
             const strengthsInput = document.getElementById('strengths');
+            const qualificationsInput = document.getElementById('qualifications');
             const motivationInput = document.getElementById('motivation');
+            const selectedJobResumeInput = document.getElementById('selected-job-resume');
+            const selectedCompanyResumeInput = document.getElementById('selected-company-resume');
+
             const submitButtonContainer = document.getElementById('submitButtonContainer');
 
             const micStatusText = document.getElementById('mic-status-text');
@@ -472,21 +567,63 @@
 
             // --- Job Selection Dropdown Change Event ---
             jobSelect.addEventListener('change', (event) => {
-                selectedJobInput.value = event.target.value;
+                const selectedJob = event.target.value;
+                selectedJobInput.value = selectedJob;
+                
+                companySelect.innerHTML = '<option value="">-- 회사를 선택해 주세요 --</option>';
+                companyInfoArea.classList.add('hidden');
+                goToResumeButton.classList.add('hidden');
+
+                if (selectedJob && companyInfo[selectedJob]) {
+                    companyInfo[selectedJob].companies.forEach(company => {
+                        const option = document.createElement('option');
+                        option.value = company;
+                        option.textContent = company;
+                        companySelect.appendChild(option);
+                    });
+                    companySelectionArea.classList.remove('hidden');
+                } else {
+                    companySelectionArea.classList.add('hidden');
+                }
+            });
+
+            // --- Company Selection Dropdown Change Event ---
+            companySelect.addEventListener('change', async (event) => {
+                const selectedJob = jobSelect.value;
+                const selectedCompany = event.target.value;
+
+                if (selectedJob && selectedCompany) {
+                    companyInfoText.innerHTML = '<div class="loading-dots"><span>.</span><span>.</span><span>.</span></div>';
+                    companyInfoArea.classList.remove('hidden');
+                    goToResumeButton.classList.add('hidden');
+
+                    const info = companyInfo[selectedJob][selectedCompany];
+                    companyInfoText.textContent = info;
+                    goToResumeButton.classList.remove('hidden');
+                } else {
+                    companyInfoArea.classList.add('hidden');
+                    goToResumeButton.classList.add('hidden');
+                }
+            });
+
+            goToResumeButton.addEventListener('click', () => {
+                userJob = jobSelect.value;
+                userCompany = companySelect.value;
+                selectedJobResumeInput.value = userJob;
+                selectedCompanyResumeInput.value = userCompany;
+                showScreen('resume-form-screen');
             });
 
             // --- Resume Submit & Save Data ---
             submitResumeButton.addEventListener('click', (event) => {
                 event.preventDefault();
                 userName = nameInput.value;
-                userJob = jobSelect.value;
-                if (!userName || !userJob) {
-                    // Custom message box instead of alert()
+                if (!userName) {
                     const messageBox = document.createElement('div');
                     messageBox.className = "fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50";
                     messageBox.innerHTML = `
                         <div class="bg-white p-8 rounded-lg shadow-lg text-center">
-                            <p class="text-gray-800 text-lg font-bold mb-4">이름과 직업을 모두 입력해주세요!</p>
+                            <p class="text-gray-800 text-lg font-bold mb-4">이름을 입력해주세요!</p>
                             <button class="bg-purple-600 text-white px-6 py-2 rounded-full font-bold">확인</button>
                         </div>
                     `;
@@ -507,7 +644,7 @@
             });
 
             // --- AI Interview Logic & Data Save ---
-            async function getAiFeedback(question, answer) {
+            async function getAiFeedback(question, answer, job, company) {
                 const apiKey = "AIzaSyAMlZRQtZBUwe29UxWvoCk9eyBV3bWfTAs";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 const systemPrompt = `
@@ -522,6 +659,8 @@
                 const userQuery = `
                     **Interview Question:** "${question}"
                     **Student Answer:** "${answer}"
+                    **지원 직업:** ${job}
+                    **지원 회사:** ${company}
                     Give me feedback and a score for this answer in a JSON object format.
                 `;
 
@@ -545,8 +684,15 @@
             }
 
             async function startInterviewFlow() {
-                if (currentQuestionIndex >= interviewQuestions.length) {
-                    await saveUserData(userName, userJob, finalInterviewScore, motivationInput.value, strengthsInput.value, finalResumeScore);
+                const jobQuestions = companyQuestions[userJob];
+                if (!jobQuestions || !jobQuestions[userCompany]) {
+                    aiQuestionDiv.textContent = "죄송합니다. 해당 회사의 면접 질문이 준비되지 않았습니다.";
+                    return;
+                }
+                currentQuestions = jobQuestions[userCompany];
+
+                if (currentQuestionIndex >= currentQuestions.length) {
+                    await saveUserData(userName, userJob, userCompany, finalInterviewScore, motivationInput.value, strengthsInput.value, qualificationsInput.value, finalResumeScore);
                     showRanking();
                     return;
                 }
@@ -556,7 +702,7 @@
                 feedbackArea.classList.add('hidden');
                 feedbackText.textContent = '';
                 
-                const question = interviewQuestions[currentQuestionIndex];
+                const question = currentQuestions[currentQuestionIndex];
                 aiQuestionDiv.textContent = question;
                 
                 myAnswerTextarea.placeholder = '여기에 답변을 작성해 보세요.';
@@ -589,7 +735,7 @@
                             
                             micStatus.classList.add('hidden');
                             const question = aiQuestionDiv.textContent;
-                            const { feedback, score } = await getAiFeedback(question, transcript);
+                            const { feedback, score } = await getAiFeedback(question, transcript, userJob, userCompany);
                             finalInterviewScore += score;
                             feedbackArea.classList.remove('hidden');
                             feedbackText.textContent = feedback;
@@ -650,7 +796,7 @@
             });
 
             // --- Firestore Functions ---
-            async function saveUserData(name, job, interviewScore, motivation, strengths, resumeScore) {
+            async function saveUserData(name, job, company, interviewScore, motivation, strengths, qualifications, resumeScore) {
                 if (!db || !userId) {
                     console.error("Firestore is not initialized.");
                     return;
@@ -662,10 +808,12 @@
                         userId: userId,
                         name: name,
                         job: job,
+                        company: company,
                         interviewScore: interviewScore,
                         resumeScore: resumeScore,
                         motivation: motivation,
                         strengths: strengths,
+                        qualifications: qualifications,
                         team: teamCode,
                         timestamp: new Date()
                     });
@@ -723,7 +871,7 @@
                 event.preventDefault(); // Prevent form submission
                 const strengths = strengthsInput.value;
                 const motivation = motivationInput.value;
-                const job = selectedJobInput.value;
+                const job = selectedJobResumeInput.value; // Use the value from the resume screen
                 if (!strengths || !motivation || !job) {
                     strengthAnalysisText.textContent = '강점, 동기, 직업을 모두 입력해야 분석할 수 있어요!';
                     strengthAnalysisArea.classList.remove('hidden');
