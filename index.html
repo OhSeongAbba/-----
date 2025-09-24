@@ -162,11 +162,11 @@
                 미래 직업 탐험대
             </h1>
             <h2 class="text-xl sm:text-2xl md:text-3xl font-semibold mb-6 text-gray-700">
-                AI 면접 & 직업 배틀!
+                이력서 작성 & AI 면접!
             </h2>
             <p class="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed mb-8">
                 친구들, 미래의 전문가가 될 준비됐나요? <br>
-                AI 면접관과 함께 멋진 직업도 찾고, 다른 팀과 신나는 미션을 해결하러 떠나봐요!
+                내 손으로 직접 이력서도 작성해 보고, AI 면접관과 함께 멋진 직업도 찾으러 떠나봐요!
                 지금 바로 여러분의 코드를 입력하고 모험을 시작해요!
             </p>
             <div class="mb-8">
@@ -514,10 +514,9 @@
             const startScreen = document.getElementById('start-screen');
             const micCheckScreen = document.getElementById('mic-check-screen');
             const jobSelectionScreen = document.getElementById('job-selection-screen');
-            const companyInfoScreen = document.getElementById('company-info-screen'); // New company info screen
-            const resumeFormScreen = document.getElementById('resume-form-screen'); // New resume screen
+            const companyInfoScreen = document.getElementById('company-info-screen');
+            const resumeFormScreen = document.getElementById('resume-form-screen');
             const aiInterviewScreen = document.getElementById('ai-interview-screen');
-            const rankingScreen = document.getElementById('ranking-screen');
             const hiringResultScreen = document.getElementById('hiring-result-screen');
             const finalScoreScreen = document.getElementById('final-score-screen');
 
@@ -533,7 +532,6 @@
             
             const jobSelect = document.getElementById('job-select');
             const selectedJobInfoSpan = document.getElementById('selected-job-info');
-            const companyInfoText = document.getElementById('company-info-text');
             const companyListArea = document.getElementById('company-list-area');
 
             const nameInput = document.getElementById('name');
@@ -552,16 +550,14 @@
             const feedbackArea = document.getElementById('feedback-area');
             const feedbackText = document.getElementById('feedback-text');
             const micStatus = document.getElementById('mic-status');
-            const rankingList = document.getElementById('ranking-list');
             const analyzeStrengthsButton = document.getElementById('analyzeStrengthsButton');
             const strengthAnalysisArea = document.getElementById('strength-analysis-area');
             const strengthAnalysisText = document.getElementById('strength-analysis-text');
-            const generateMissionButton = document.getElementById('generateMissionButton');
-            const missionArea = document.getElementById('mission-area');
-            const missionText = document.getElementById('mission-text');
-            const myResumeScoreSpan = document.getElementById('resume-score');
-            const myInterviewScoreSpan = document.getElementById('interview-score');
             const finalResultButton = document.getElementById('final-result-button');
+            const myResumeScoreSpan = document.getElementById('final-resume-score');
+            const myInterviewScoreSpan = document.getElementById('final-interview-score');
+            const resumeScoreReasonDiv = document.getElementById('resume-score-reason');
+            const interviewScoreReasonDiv = document.getElementById('interview-score-reason');
 
 
             // --- Firebase Initialization and Auth ---
@@ -775,8 +771,8 @@
                 currentQuestions = jobQuestions[userCompany];
 
                 if (currentQuestionIndex >= currentQuestions.length) {
-                    // All questions asked, proceed to score calculation and final results
-                    await showFinalResults();
+                    // All questions asked, proceed to show hiring result
+                    showFinalResults();
                     return;
                 }
 
